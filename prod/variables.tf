@@ -87,7 +87,7 @@ variable "route53_zone_id" {
 
 variable "aws_account_id" {
   description = "AWS Account ID"
-  default     = "46669221620"
+  default     = "746669221620"
 }
 
 variable "repositories" {
