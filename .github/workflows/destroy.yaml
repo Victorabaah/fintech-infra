@@ -1,14 +1,10 @@
-name: Terraform-AWS-Destroy-Infrastructure
-
-permissions:
-  id-token: write
-  contents: read
+name: Terraform Destroy Infrastructure
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Deployment Environment (dev, qa, uat, prod)"
+        description: "Environment (dev, qa, uat, prod)"
         required: true
         default: "prod"
       region:
@@ -18,7 +14,7 @@ on:
 
 jobs:
   destroy:
-    name: Destroy Infrastructure
+    name: Destroy Infra
     runs-on: ubuntu-latest
     env:
       TF_ENV: ${{ github.event.inputs.environment }}
@@ -28,7 +24,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -36,14 +32,16 @@ jobs:
         with:
           terraform_version: "1.5.0"
 
-      - name: Overwrite config with empty file to force destroy
+      - name: Remove all *.tf files to simulate empty configuration
         run: |
-          echo "# Empty Terraform config to force destroy" > $TF_DIR/main.tf
+          echo "Temporarily removing all Terraform files to trigger destroy"
+          mv $TF_DIR $TF_DIR.bak
+          mkdir $TF_DIR
 
-      - name: Terraform Init
+      - name: Terraform init
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -backend-config="key=${{ env.TF_ENV }}/terraform.tfstate"
 
-      - name: Terraform Destroy
+      - name: Terraform destroy
         working-directory: ${{ env.TF_DIR }}
         run: terraform destroy -auto-approve -lock=false
