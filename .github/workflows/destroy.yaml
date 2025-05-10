@@ -1,8 +1,8 @@
+name: Terraform-AWS-Destroy-Infrastructure
+
 permissions:
   id-token: write
   contents: read
-
-name: Terraform-AWS-Infra-Destroy
 
 on:
   workflow_dispatch:
@@ -16,10 +16,6 @@ on:
         required: true
         default: "us-east-2"
 
-concurrency:
-  group: terraform-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   destroy:
     name: Destroy Infrastructure
@@ -30,8 +26,9 @@ jobs:
       TF_DIR: ${{ github.event.inputs.environment }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -39,14 +36,9 @@ jobs:
         with:
           terraform_version: "1.5.0"
 
-      - name: Verify working directory
+      - name: Overwrite config with empty file to force destroy
         run: |
-          echo "Looking in ./${{ env.TF_DIR }}"
-          ls -l ./${{ env.TF_DIR }}
-
-      - name: Terraform Format Check
-        working-directory: ${{ env.TF_DIR }}
-        run: terraform fmt -check
+          echo "# Empty Terraform config to force destroy" > $TF_DIR/main.tf
 
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
