@@ -123,6 +123,8 @@ module "ecr" {
 module "iam" {
   source      = "./../modules/iam"
   environment = var.env_name
+  eks_oidc_provider = module.eks.oidc_provider_arn
+  cluster_name = var.cluster_name
   tags        = local.common_tags
 }
 
