@@ -1,7 +1,7 @@
 
 provider "aws" {
-  region = us-eest-2
-  alias  = "us-eest-2"
+  region = us-east-2
+  alias  = "us-east-2"
 }
 
 provider "kubernetes" {

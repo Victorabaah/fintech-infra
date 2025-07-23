@@ -4,20 +4,22 @@
 
 module "vpc" {
   source      = "./../modules/vpc"
-  main-region = var.main-region
+  main_region = var.main-region
 }
 
 # ################################################################################
 # # EKS Cluster Module
 # ################################################################################
-
-module "eks" {
+module "eks"{
   source             = "./../modules/eks-cluster"
   cluster_name       = var.cluster_name
   rolearn            = var.rolearn
+  cni_role_arn       = module.iam.cni_role_arn
   security_group_ids = [module.eks-client-node.eks_client_sg]
   vpc_id             = module.vpc.vpc_id
   private_subnets    = module.vpc.private_subnets
+  tags               = local.common_tags
+  env_name           = var.env_name
 }
 
 # ################################################################################
@@ -27,7 +29,7 @@ module "eks" {
 module "aws_alb_controller" {
   source = "./../modules/aws-alb-controller"
 
-  main-region  = var.main-region
+  main_region  = var.main-region
   env_name     = var.env_name
   cluster_name = var.cluster_name
 
