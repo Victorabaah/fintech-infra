@@ -141,15 +141,15 @@ module "jenkins-server" {
 }
 
 
-module "terraform-node" {
-  source            = "./../modules/terraform-node"
-  ami_id            = local.final_ami_id
-  instance_type     = var.instance_type
-  key_name          = var.key_name
-  main-region       = var.main-region
-  security_group_id = module.eks-client-node.eks_client_sg
-  subnet_id         = module.vpc.public_subnets[0]
-}
+# module "terraform-node" {
+#   source            = "./../modules/terraform-node"
+#   ami_id            = local.final_ami_id
+#   instance_type     = var.instance_type
+#   key_name          = var.key_name
+#   main-region       = var.main-region
+#   security_group_id = module.eks-client-node.eks_client_sg
+#   subnet_id         = module.vpc.public_subnets[0]
+# }
 
 module "maven-sonarqube-server" {
   source            = "./../modules/maven-sonarqube-server"
