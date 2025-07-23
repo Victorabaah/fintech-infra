@@ -4,7 +4,7 @@
 
 module "vpc" {
   source      = "./../modules/vpc"
-  main_region = var.main-region
+  main_region = var.main_region
 }
 
 # ################################################################################
@@ -42,10 +42,10 @@ module "eks-client-node" {
   source                 = "./../modules/eks-client-node"
   ami_id                 = local.final_ami_id
   instance_type          = var.instance_type
-  aws_region             = var.main-region
+  aws_region             = var.main_region
   subnet_id              = module.vpc.public_subnets[0]
   vpc_id                 = module.vpc.vpc_id
-  vpc_security_group_ids = [module.eks-client-node.eks_client_sg]
+  vpc_security_group_ids = [module.eks_client-node.eks_client_sg]
   cluster_name           = module.eks.cluster_name
   tags = {
     Name = "eks_client_node"
@@ -65,7 +65,7 @@ module "eks-client-node" {
     sudo ./aws/install
 
     echo "Installing Terraform..."
-    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /prod/null
+    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
     echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     sudo apt-get update -y
     sudo apt-get install -y terraform
