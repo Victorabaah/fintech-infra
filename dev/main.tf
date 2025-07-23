@@ -10,7 +10,7 @@ module "vpc" {
 # ################################################################################
 # # EKS Cluster Module
 # ################################################################################
-module "eks"{
+module "eks" {
   source             = "./../modules/eks-cluster"
   cluster_name       = var.cluster_name
   rolearn            = var.rolearn
