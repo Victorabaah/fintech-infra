@@ -1,15 +1,9 @@
 ################################################################################
-# General Variables from Root Module
+# General Variables
 ################################################################################
 
 variable "main_region" {
-  description = "AWS Region where resources will be deployed"
-  type        = string
-  default     = "us-east-2"
-}
-
-variable "env_name" {
-  description = "Environment name (e.g., dev, staging, prod)"
+  description = "AWS Region"
   type        = string
 }
 
@@ -18,16 +12,18 @@ variable "cluster_name" {
   type        = string
 }
 
-################################################################################
-# Variables from Other Modules
-################################################################################
-
 variable "vpc_id" {
-  description = "VPC ID where Load Balancers will be deployed"
+  description = "VPC ID"
   type        = string
 }
 
 variable "oidc_provider_arn" {
-  description = "OIDC Provider ARN used for IRSA"
+  description = "OIDC provider ARN for IRSA"
   type        = string
-}
+ }
+
+ variable "account_id" {
+  description = "aws account"
+  default = 999568710647
+   
+ }

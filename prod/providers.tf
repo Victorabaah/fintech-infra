@@ -17,6 +17,7 @@ provider "helm" {
       args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
     }
   }
+
 }
 
 # provider "kubernetes" {
