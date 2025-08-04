@@ -1,13 +1,16 @@
 permissions:
   id-token: write # Required for OIDC authentication
-  contents: read # Required for actions/checkout
+  contents: read  # Required for actions/checkout
 
 name: Terraform-AWS-Infra-Deployment
-
 on:
+  push:
+    branches:
+      - release
+      - pre-release
   pull_request:
-    branches: [main]
-
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       environment:
@@ -29,7 +32,7 @@ concurrency:
 
 jobs:
   plan:
-    name: Plan
+    name: Terraform Plan
     runs-on: ubuntu-latest
     env:
       TF_ENV: ${{ github.event.inputs.environment || 'prod' }}
@@ -44,9 +47,9 @@ jobs:
         with:
           terraform_version: "1.5.0"
 
-      - name: Verify working dir
+      - name: Verify working directory
         run: |
-          echo "Looking in './${{ env.TF_DIR }}'"
+          echo "Working in ./${{ env.TF_DIR }}"
           ls -l ./${{ env.TF_DIR }}
 
       - name: Terraform init
@@ -63,10 +66,10 @@ jobs:
     needs: plan
     environment: ${{ github.event.inputs.environment || 'prod' }}
     steps:
-      - run: echo "✅ Approve or ❌ Reject in the Actions UI."
+      - run: echo "✅ Manual approval required in the Actions UI."
 
   deploy:
-    name: Deploy
+    name: Terraform Deploy
     runs-on: ubuntu-latest
     needs: approve
     env:
@@ -94,16 +97,4 @@ jobs:
       - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
         working-directory: ${{ env.TF_DIR }}
-        env:
-          TF_LOG: DEBUG
-          AWS_METADATA_SERVICE_TIMEOUT: 10
-          AWS_METADATA_SERVICE_NUM_ATTEMPTS: 5
-          AWS_RETRY_MODE: standard
-          AWS_MAX_ATTEMPTS: 10
-        run: |
-          echo "⚠️ Starting Terraform Destroy"
-          terraform destroy -auto-approve -lock=false || {
-            echo "❌ Terraform destroy failed. Retrying in 15 seconds..."
-            sleep 15
-            terraform destroy -auto-approve -lock=false
-          }
+        run: terraform destroy -auto-approve -lock=false

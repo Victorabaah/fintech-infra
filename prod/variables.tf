@@ -1,44 +1,37 @@
+################################################################################
+# General AWS Configuration
+################################################################################
 
-# ################################################################################
-# # Default Variables
-# ################################################################################
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
+  default     = "999568710647"
+}
+
+variable "aws_region" {
+  description = "AWS Region used for deployments"
+  type        = string
+  default     = "us-east-2"
+}
 
 variable "main_region" {
-  type    = string
-  default = "us-east-2"
+  description = "Primary region for VPC and global resources"
+  type        = string
+  default     = "us-east-2"
 }
 
-
-# ################################################################################
-# # EKS Cluster Variables
-# ################################################################################
-
-variable "cluster_name" {
-  type    = string
-  default = "prod-dominion-cluster"
-}
-
-variable "rolearn" {
-  description = "Add admin role to the aws-auth configmap"
-  default     = "arn:aws:iam::999568710647:role/terraform-create-role"
-
-}
-
-
-
-# ################################################################################
-# # ALB Controller Variables
-# ################################################################################
+################################################################################
+# Environment and Tagging
+################################################################################
 
 variable "env_name" {
-  type    = string
-  default = "prod"
+  description = "Environment name (e.g. dev, staging, prod)"
+  type        = string
+  default     = "prod"
 }
 
-
-
 variable "tags" {
-  description = "Common tags for the cluster resources"
+  description = "Common tags for all resources"
   type        = map(string)
   default = {
     product   = "fintech-app"
@@ -46,63 +39,83 @@ variable "tags" {
   }
 }
 
+################################################################################
+# EKS Cluster Configuration
+################################################################################
 
-# EKS CLIENT NODE VARIABLE
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
+  type        = string
+  default     = "prod-dominion-cluster"
+}
+
+variable "rolearn" {
+  description = "IAM role ARN to be added to the aws-auth configmap as admin"
+  type        = string
+  default     = "arn:aws:iam::999568710647:role/terraform-create-role"
+}
+
+
+################################################################################
+# EC2 / Client Node Configuration
+################################################################################
+
 variable "ami_id" {
-  description = "The AMI ID for the Terraform node. Leave empty to automatically fetch the latest Ubuntu AMI."
+  description = "AMI ID for client nodes (leave empty to auto-fetch latest Ubuntu)"
   type        = string
   default     = ""
 }
 
 variable "instance_type" {
-  description = "The instance type for the Terraform node"
+  description = "Instance type for EC2-based client nodes"
   type        = string
   default     = "t3.medium"
 }
 
 variable "key_name" {
-  description = "The key name for the instance"
+  description = "EC2 Key Pair name for SSH access"
   type        = string
   default     = "class38_demo_key"
 }
 
-#Amazon Certificate Manager
+################################################################################
+# Certificate Manager (ACM) & Route 53
+################################################################################
+
 variable "domain_name" {
-  description = "Primary domain name for the certificate"
+  description = "Primary domain name for certificate issuance"
   type        = string
   default     = "dominionsystem.org"
 }
 
 variable "san_domains" {
-  description = "Subject alternative names for the certificate"
+  description = "SANs (Subject Alternative Names) for SSL certificate"
   type        = list(string)
   default     = ["*.dominionsystem.org"]
 }
 
 variable "route53_zone_id" {
-  description = "Route 53 Hosted Zone ID"
+  description = "Route 53 hosted zone ID for domain validation"
   type        = string
-  default     = "Z05475331ZK00RPD27RX0" # Replace with actual Route 53 Zone ID
+  default     = "Z05475331ZK00RPD27RX0"
 }
 
-
-##ECR
-
-variable "aws_account_id" {
-  description = "AWS Account ID"
-  default     = "999568710647"
-}
+################################################################################
+# ECR Repositories
+################################################################################
 
 variable "repositories" {
   description = "List of ECR repositories to create"
   type        = list(string)
-  default     = ["fintech-app"]
+  default     = ["fintech-app","gateway"]
 }
 
-#### iam ###
+################################################################################
+# Kubernetes Namespaces (for add-ons or app grouping)
+################################################################################
 
 variable "namespaces" {
-  description = "Map of namespace definitions"
+  description = "Kubernetes namespace configurations with annotations and labels"
   type = map(object({
     annotations = map(string)
     labels      = map(string)
@@ -126,56 +139,3 @@ variable "namespaces" {
     }
   }
 }
-
-
-
-
-
-################################################################################
-# EKS Cluster Variables for grafana and prometheus deployment
-################################################################################
-
-# variable "cluster_endpoint" {
-#   type        = string
-#   sensitive   = true
-#   description = "The cluster endpoint"
-# }
-
-# variable "cluster_certificate_authority_data" {
-#   type        = string
-#   sensitive   = true
-#   description = "The Cluster certificate data"
-# }
-
-# variable "oidc_provider_arn" {
-#   description = "OIDC Provider ARN used for IRSA "
-#   type        = string
-#   sensitive   = true
-# }
-
-# ################################################################################
-# # VPC Variables
-# ################################################################################
-
-# variable "vpc_id" {
-#   description = "VPC ID which Load balancers will be  deployed in"
-#   type        = string
-# }
-
-# variable "private_subnets" {
-#   description = "A list of private subnets"
-#   type        = list(string)
-# }
-
-################################################################################
-# AWS SSO Variables
-################################################################################
-
-# variable "sso_admin_group_id" {
-#   description = "AWS_SSO Admin Group ID"
-#   type        = string
-#   sensitive   = true
-#   default     = "b4f8f4f8-e011-7046-0637-993dc10edd76"
-# }
-
-

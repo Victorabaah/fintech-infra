@@ -12,16 +12,22 @@ module "vpc" {
 # ################################################################################
 
 module "eks" {
-  source             = "./../modules/eks-cluster"
-  cluster_name       = var.cluster_name
-  rolearn            = var.rolearn
-  cni_role_arn       = module.iam.cni_role_arn
+  source = "./../modules/eks-cluster"
+
+  cluster_name = var.cluster_name
+  rolearn      = var.rolearn
+  cni_role_arn = module.iam.cni_role_arn
+
   security_group_ids = [module.eks-client-node.eks_client_sg]
   vpc_id             = module.vpc.vpc_id
   private_subnets    = module.vpc.private_subnets
-  tags               = local.common_tags
-  env_name           = var.env_name
+
+  # Enables EKS to bootstrap and manage the core addons
+
+  tags     = local.common_tags
+  env_name = var.env_name
 }
+
 
 
 # ################################################################################
@@ -31,12 +37,13 @@ module "eks" {
 module "aws_alb_controller" {
   source = "./../modules/aws-alb-controller"
 
-  main_region  = var.main_region
-  env_name     = var.env_name
-  cluster_name = var.cluster_name
-
+  main_region       = var.main_region
+  cluster_name      = var.cluster_name
   vpc_id            = module.vpc.vpc_id
+  account_id        = var.aws_account_id
   oidc_provider_arn = module.eks.oidc_provider_arn
+
+  depends_on = [module.eks]
 }
 
 
@@ -130,12 +137,16 @@ module "ecr" {
   tags           = local.common_tags
 }
 
-
 module "iam" {
-  source      = "./../modules/iam"
-  environment = var.env_name
-  tags        = local.common_tags
+  source            = "./../modules/iam"
+  environment       = var.env_name
+  aws_region        = var.aws_region
+  aws_account_id    = var.aws_account_id
+  eks_oidc_provider = local.eks_oidc_provider
+  cluster_name      = var.cluster_name
+  tags              = local.common_tags
 }
+
 
 
 ##############################################
