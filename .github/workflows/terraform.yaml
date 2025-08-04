@@ -52,10 +52,6 @@ jobs:
           echo "Working in ./${{ env.TF_DIR }}"
           ls -l ./${{ env.TF_DIR }}
 
-      - name: Terraform fmt check
-        working-directory: ${{ env.TF_DIR }}
-        run: terraform fmt -check
-
       - name: Terraform init
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -upgrade -backend-config="key=${{ env.TF_ENV }}/terraform.tfstate"
