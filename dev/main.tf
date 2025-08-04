@@ -1,16 +1,15 @@
-################################################################################
-# VPC Module
-################################################################################
+# ################################################################################
+# # VPC Module
+# ################################################################################
 
 module "vpc" {
   source      = "./../modules/vpc"
-  main_region = var.main_region
+  main_region = var.main-region
 }
 
-################################################################################
-# EKS Cluster Module
-################################################################################
-
+# ################################################################################
+# # EKS Cluster Module
+# ################################################################################
 module "eks" {
   source             = "./../modules/eks-cluster"
   cluster_name       = var.cluster_name
@@ -23,24 +22,27 @@ module "eks" {
   env_name           = var.env_name
 }
 
-################################################################################
-# AWS ALB Controller
-################################################################################
+# ################################################################################
+# # AWS ALB Controller
+# ################################################################################
 
 module "aws_alb_controller" {
-  source             = "./../modules/aws-alb-controller"
-  main_region        = var.main_region
-  env_name           = var.env_name
-  cluster_name       = var.cluster_name
-  vpc_id             = module.vpc.vpc_id
-  oidc_provider_arn  = module.eks.oidc_provider_arn
+  source = "./../modules/aws-alb-controller/variables"
+
+  main_region  = var.main-region
+  env_name     = var.env_name
+  cluster_name = var.cluster_name
+
+  vpc_id            = module.vpc.vpc_id
+  oidc_provider_arn = module.eks.oidc_provider_arn
 }
+
 
 module "eks-client-node" {
   source                 = "./../modules/eks-client-node"
   ami_id                 = local.final_ami_id
   instance_type          = var.instance_type
-  aws_region             = var.main_region
+  aws_region             = var.main-region
   subnet_id              = module.vpc.public_subnets[0]
   vpc_id                 = module.vpc.vpc_id
   vpc_security_group_ids = [module.eks-client-node.eks_client_sg]
@@ -63,7 +65,7 @@ module "eks-client-node" {
     sudo ./aws/install
 
     echo "Installing Terraform..."
-    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /prod/null
     echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     sudo apt-get update -y
     sudo apt-get install -y terraform
@@ -83,23 +85,23 @@ module "eks-client-node" {
       sudo systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service
       sudo systemctl start snap.amazon-ssm-agent.amazon-ssm-agent.service
     fi
-
     echo "Installing Docker..."
     sudo apt-get remove -y docker docker-engine docker.io containerd runc
     sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common gnupg
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /prod/null
     sudo apt-get update -y
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io
     sudo systemctl enable docker
     sudo systemctl start docker
     sudo usermod -aG docker $USER
     newgrp docker
-
     echo "Installation of AWS CLI, Terraform, kubectl, Amazon SSM Agent, and Docker is complete."
   EOF
   )
 }
+
+
 
 module "acm" {
   source          = "./../modules/acm"
@@ -109,6 +111,7 @@ module "acm" {
   tags            = local.common_tags
 }
 
+
 module "ecr" {
   source         = "./../modules/ecr"
   aws_account_id = var.aws_account_id
@@ -116,27 +119,37 @@ module "ecr" {
   tags           = local.common_tags
 }
 
+
 module "iam" {
-  source            = "./../modules/iam"
-  environment       = var.env_name
-  eks_oidc_provider = module.eks.oidc_provider_arn
-  cluster_name      = var.cluster_name
-  tags              = local.common_tags
+  source      = "./../modules/iam"
+  environment = var.env_name
+  tags        = local.common_tags
 }
 
-################################################################################
-# EKS TOOLS
-################################################################################
 
+##############################################
+# EKS TOOLS
+##############################################
 module "jenkins-server" {
   source            = "./../modules/jenkins-server"
   ami_id            = local.final_ami_id
   instance_type     = var.instance_type
   key_name          = var.key_name
-  main_region       = var.main_region
+  main-region       = var.main-region
   security_group_id = module.eks-client-node.eks_client_sg
   subnet_id         = module.vpc.public_subnets[0]
 }
+
+
+# module "terraform-node" {
+#   source            = "./../modules/terraform-node"
+#   ami_id            = local.final_ami_id
+#   instance_type     = var.instance_type
+#   key_name          = var.key_name
+#   main-region       = var.main-region
+#   security_group_id = module.eks-client-node.eks_client_sg
+#   subnet_id         = module.vpc.public_subnets[0]
+# }
 
 module "maven-sonarqube-server" {
   source            = "./../modules/maven-sonarqube-server"
@@ -145,4 +158,60 @@ module "maven-sonarqube-server" {
   key_name          = var.key_name
   security_group_id = module.eks-client-node.eks_client_sg
   subnet_id         = module.vpc.public_subnets[0]
+  # main-region   = var.main-region
+
+  #   db_name              = var.db_name
+  #   db_username          = var.db_username
+  #   db_password          = var.db_password
+  #   db_subnet_group      = var.db_subnet_group
+  #   db_security_group_id = var.db_security_group_id
 }
+
+
+
+
+
+# ################################################################################
+# # Managed Grafana Module
+# ################################################################################
+
+# module "managed_grafana" {
+#   source             = "./modules/grafana"
+#   env_name           = var.env_name
+#   main-region        = var.main-region
+#   private_subnets    = module.vpc.private_subnets
+#   sso_admin_group_id = var.sso_admin_group_id
+# }
+
+
+
+# # ################################################################################
+# # # Managed Prometheus Module
+# # ################################################################################
+
+# module "prometheus" {
+#   source            = "./modules/prometheus"
+#   env_name          = var.env_name
+#   main-region       = var.main-region
+#   cluster_name      = var.cluster_name
+#   oidc_provider_arn = module.eks.oidc_provider_arn
+#   vpc_id            = module.vpc.vpc_id
+#   private_subnets   = module.vpc.private_subnets
+# }
+
+
+
+# # ################################################################################
+# # # VPC Endpoints for Prometheus and Grafana Module
+# # ################################################################################
+
+# module "vpcendpoints" {
+#   source                    = "./modules/vpcendpoints"
+#   env_name                  = var.env_name
+#   main-region               = var.main-region
+#   vpc_id                    = module.vpc.vpc_id
+#   private_subnets           = module.vpc.private_subnets
+#   grafana_security_group_id = module.managed_grafana.security_group_id
+# }
+
+

@@ -14,6 +14,4 @@ aws iam attach-role-policy \
 
 aws eks create-addon --cluster-name dominion-cluster --addon-name amazon-cloudwatch-observability
 
-observability 
-
 
